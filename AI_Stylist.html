@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Stylist - Phối Việt phục chuẩn văn hóa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-slate: #0F172A;
+      --card-bg: #1E293B;
+      --gold: #D4AF37;
+      --gold-light: #FDE68A;
+      --gold-glow: rgba(212, 175, 55, 0.5);
+      --crimson: #991B1B;
+      --crimson-hover: #B91C1C;
+      --crimson-glow: rgba(153, 27, 27, 0.6);
+      --border-gold-subtle: rgba(212, 175, 55, 0.32);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-label: #FEF08A;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-slate);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .font-serif { font-family: 'Playfair Display', Georgia, serif; }
+
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(153, 27, 27, 0.22), transparent 60%),
+                  radial-gradient(circle at 85% 30%, rgba(212, 175, 55, 0.1), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-gold-subtle);
+      z-index: 50;
+      padding: 12px 20px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .header-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-gold-subtle);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .card:hover { border-color: rgba(212, 175, 55, 0.55); }
+
+    .progress-track {
+      width: 100%;
+      height: 4px;
+      background: #090e17;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #991B1B 0%, #D4AF37 50%, #F59E0B 100%);
+      border-radius: 9999px;
+      transition: width 0.4s ease;
+    }
+
+    .stage-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid #334155;
+      color: #94A3B8;
+      border-radius: 6px;
+      padding: 6px 12px;
+      height: 32px;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      white-space: nowrap;
+    }
+
+    .stage-btn:hover {
+      border-color: rgba(212, 175, 55, 0.5);
+      color: var(--text-main);
+    }
+
+    .stage-btn.active {
+      background: var(--card-bg);
+      border-color: var(--gold);
+      color: var(--gold-light);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-label);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .input-box {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1.5px solid var(--border-gold-subtle);
+      color: #F8FAFC;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .input-box:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25);
+    }
+
+    select.input-box {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D4AF37'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px;
+      appearance: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #991B1B 0%, #7f1d1d 50%, #991B1B 100%);
+      border: 2px solid var(--gold);
+      color: #FFFBEB;
+      padding: 16px 28px;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      box-shadow: 0 0 20px var(--crimson-glow);
+      transition: all 0.2s;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #B91C1C 0%, #991B1B 50%, #dc2626 100%);
+      border-color: var(--gold-light);
+    }
+
+    .btn-secondary {
+      background: #0F172A;
+      border: 1.5px solid #475569;
+      color: #CBD5E1;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--gold);
+      color: #F8FAFC;
+      background: #1E293B;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #D4AF37 0%, #B45309 100%);
+      border: 2px solid #FDE68A;
+      color: #0F172A;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      transition: all 0.2s;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border-gold-subtle);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.45);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--gold);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .chip {
+      background: #0F172A;
+      border: 1px solid #334155;
+      font-size: 12px;
+      color: #CBD5E1;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #450A0A;
+      border: 2.5px solid #EF4444;
+      border-radius: 18px;
+      box-shadow: 0 0 50px rgba(239, 68, 68, 0.65);
+      max-width: 580px;
+      width: 100%;
+      padding: 28px;
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.show .modal-content { transform: scale(1); }
+
+    details.expander summary {
+      cursor: pointer;
+      padding: 8px 12px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: var(--gold-light);
+      font-size: 12px;
+      font-weight: 600;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    details.expander .expander-content {
+      padding: 12px;
+      background: #090e17;
+      border: 1px solid #334155;
+      border-top: none;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.5;
+    }
+
+    .option-select-card {
+      background: #1E293B;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .option-select-card.selected {
+      border-color: #D4AF37;
+      background: rgba(30, 41, 59, 0.95);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg"></div>
+
+  <!-- POPUP CẢNH BÁO VĂN HÓA -->
+  <div id="redAlertModal" class="modal-overlay" onclick="closeRedAlertModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div style="display: flex; align-items: flex-start; gap: 14px;">
+        <div style="font-size: 34px; line-height: 1;">⛔</div>
+        <div style="flex: 1;">
+          <div style="font-size: 18px; font-weight: 800; color: #FCA5A5; text-transform: uppercase;" class="font-serif" id="modalErrorTitle">
+            CẢNH BÁO VI PHẠM QUY CHUẨN VĂN HÓA!
+          </div>
+          <div style="display: inline-block; background: #7F1D1D; border: 1px solid #EF4444; color: #FEE2E2; font-family: monospace; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-top: 6px;">
+            MÃ LỖI: <span id="modalErrorCode">ERR_NHAT_BINH_CASUAL</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 10px; padding: 14px; margin-top: 16px;">
+        <div style="font-size: 12px; font-weight: 700; color: #FCA5A5; text-transform: uppercase; margin-bottom: 4px;">
+          Nội dung vi phạm:
+        </div>
+        <p id="modalErrorMessage" style="font-size: 14px; color: #FEE2E2; line-height: 1.5;">
+          Áo Nhật Bình là lễ phục cung đình trang trọng bậc nhất, phải giữ nguyên bản 100%, tuyệt đối không được phối với item thời trang thường nhật!
+        </p>
+      </div>
+
+      <div style="background: rgba(20, 83, 45, 0.35); border: 1px solid rgba(34, 197, 94, 0.5); border-radius: 10px; padding: 14px; margin-top: 12px;">
+        <div style="font-size: 12px; font-weight: 700; color: #86EFAC; text-transform: uppercase; margin-bottom: 4px;">
+          💡 Gợi ý khắc phục từ AI Stylist:
+        </div>
+        <p id="modalAdviceMessage" style="font-size: 13px; color: #DCFCE7; line-height: 1.5;">
+          Vui lòng chọn Vibe "Trà bánh Hoàng gia" hoặc "Dự lễ hội Truyền thống", hoặc đổi trang phục chính sang "Áo Ngũ Thân Tay Chẽn"!
+        </p>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-primary" style="background: #991B1B; border-color: #F87171; width: auto; padding: 10px 22px; font-size: 14px;" onclick="closeRedAlertModal()">
+          <span>🔄 Điều chỉnh lại lựa chọn</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container">
+      <div class="header-top-row">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h1 class="font-serif" style="font-size: 22px; font-weight: 700; color: #F8FAFC; margin: 0;">
+            AI Stylist - Phối Việt phục chuẩn văn hóa
+          </h1>
+          <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #D4AF37; background: rgba(212,175,55,0.12); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(212,175,55,0.35);">
+            Triều Nguyễn • Active v2.1
+          </span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill" style="width: 33.33%;"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+          <button id="btnStage1" class="stage-btn active" onclick="goToStage(1)">
+            <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+              <span id="badgeStage1" style="font-size: 10px; font-weight: 800; background: #D4AF37; color: #0F172A; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">01</span>
+              <span style="font-size: 12px; font-weight: 700; color: #D4AF37; text-overflow: ellipsis; overflow: hidden;">Chặng 1: Nhập thông tin & Yêu cầu</span>
+            </div>
+            <span id="pctStage1" style="font-size: 10px; color: #FDE68A; font-family: monospace; font-weight: 700;">33%</span>
+          </button>
+
+          <button id="btnStage2" class="stage-btn" onclick="goToStage(2)">
+            <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+              <span id="badgeStage2" style="font-size: 10px; font-weight: 800; background: #334155; color: #94A3B8; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">02</span>
+              <span style="font-size: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden;">Chặng 2: Chọn Option & Tinh chỉnh</span>
+            </div>
+            <span id="pctStage2" style="font-size: 10px; color: #64748B; font-family: monospace; font-weight: 700;">66%</span>
+          </button>
+
+          <button id="btnStage3" class="stage-btn" onclick="goToStage(3)">
+            <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+              <span id="badgeStage3" style="font-size: 10px; font-weight: 800; background: #334155; color: #94A3B8; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">03</span>
+              <span style="font-size: 12px; font-weight: 600; text-overflow: ellipsis; overflow: hidden;">Chặng 3: Kết quả & Di sản</span>
+            </div>
+            <span id="pctStage3" style="font-size: 10px; color: #64748B; font-family: monospace; font-weight: 700;">100%</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container" style="padding-top: 24px; padding-bottom: 60px;">
+
+    <!-- CHẶNG 1: NHẬP THÔNG TIN & YÊU CẦU -->
+    <div id="viewStage1">
+      <div style="margin-bottom: 20px;">
+        <span style="font-size: 12px; color: #D4AF37; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+          ❖ THIẾT KẾ MAY ĐO ĐƯƠNG ĐẠI
+        </span>
+        <h2 class="font-serif" style="font-size: 26px; font-weight: 700; color: #F8FAFC; margin-top: 4px;">
+          Chặng 1: Nhập Thông Tin & Định Hình Yêu Cầu
+        </h2>
+      </div>
+
+      <div class="grid-2">
+        <!-- CỘT TRÁI - THÔNG TIN NGƯỜI DÙNG -->
+        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="border-bottom: 1px solid rgba(212,175,55,0.25); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 4px; height: 18px; background: #D4AF37; border-radius: 2px;"></span>
+              <h3 class="font-serif" style="font-size: 18px; font-weight: 700; color: #F8FAFC;">
+                1. Thông Tin Người Dùng
+              </h3>
+            </div>
+            <span style="font-size: 11px; color: #FDE68A; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3); padding: 3px 8px; border-radius: 20px; font-weight: 600;">
+              Nhân trắc học
+            </span>
+          </div>
+
+          <div>
+            <label for="nhap_ten" class="form-label">Họ và tên <span style="color: #EF4444;">*</span></label>
+            <input id="nhap_ten" type="text" class="input-box" placeholder="VD: Nguyễn Văn A" value="">
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Ảnh Chân Dung Người Mặc <span style="color: #EF4444;">*</span></label>
+              <span id="removePhotoBtn" style="font-size: 12px; color: #F87171; cursor: pointer; display: none; font-weight: 600;" onclick="removePortrait()">Xóa ảnh</span>
+            </div>
+
+            <div id="dropZone" class="upload-zone" onclick="document.getElementById('filePortrait').click()">
+              <input type="file" id="filePortrait" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+              <div id="uploadPlaceholder">
+                <div style="font-size: 28px; margin-bottom: 4px;">📸</div>
+                <div style="font-size: 14px; font-weight: 600; color: #F8FAFC;">
+                  <span style="color: #D4AF37; text-decoration: underline;">Nhấp để tải ảnh</span> hoặc kéo thả ảnh vào đây
+                </div>
+                <div style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Hỗ trợ JPG, PNG, WEBP</div>
+              </div>
+
+              <div id="uploadPreview" style="display: none; align-items: center; gap: 14px; text-align: left;">
+                <div style="width: 64px; height: 64px; border-radius: 10px; overflow: hidden; border: 2px solid #D4AF37; flex-shrink: 0;">
+                  <img id="previewImg" src="" alt="Portrait Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div>
+                  <div id="previewFileName" style="font-size: 14px; font-weight: 700; color: #F8FAFC;">chan_dung.jpg</div>
+                  <div style="font-size: 12px; color: #34D399; margin-top: 2px; font-weight: 600;">✓ Nhận diện đặc trưng gương mặt</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 8px;">
+              <span style="font-size: 12px; color: #94A3B8; font-weight: 500;">Hoặc chọn chân dung mẫu:</span>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 6px;">
+                <button type="button" class="chip" onclick="setPresetPortrait('nam')">👨‍🎓 Nam sĩ tử</button>
+                <button type="button" class="chip" onclick="setPresetPortrait('nu')">👩‍🦰 Nữ thanh nhã</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label class="form-label">Chiều cao (cm)</label>
+                <input id="inputHeight" type="number" class="input-box" value="172">
+              </div>
+              <div>
+                <label class="form-label">Cân nặng (kg)</label>
+                <input id="inputWeight" type="number" class="input-box" value="64">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Mô Tả Đặc Điểm Người Mặc</label>
+            <input id="inputDesc" type="text" class="input-box" value="Nam giới, mặt góc cạnh nho nhã, ngũ quan hài hòa, vóc dáng cân đối">
+            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
+              <span class="chip" onclick="addDescTag('Nam giới')">+ Nam giới</span>
+              <span class="chip" onclick="addDescTag('Nữ giới')">+ Nữ giới</span>
+              <span class="chip" onclick="addDescTag('Mặt trái xoan')">+ Mặt trái xoan</span>
+              <span class="chip" onclick="addDescTag('Đeo kính tròn')">+ Đeo kính tròn</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="ghi_chu_them" class="form-label">Ghi Chú Thêm (Màu sắc, Bối cảnh)</label>
+            <textarea id="ghi_chu_them" class="input-box" rows="2" style="resize: none;">Tone màu đỏ gấm phối hoa văn ánh vàng, bối cảnh phòng chụp ảnh sáng sủa, gọn gàng</textarea>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI - TRANG PHỤC & PHONG CÁCH -->
+        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+          <div style="border-bottom: 1px solid rgba(212,175,55,0.25); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 4px; height: 18px; background: #D4AF37; border-radius: 2px;"></span>
+              <h3 class="font-serif" style="font-size: 18px; font-weight: 700; color: #F8FAFC;">
+                2. Trang Phục & Phong Cách
+              </h3>
+            </div>
+            <span style="font-size: 11px; color: #D4AF37; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.3); padding: 3px 8px; border-radius: 20px; font-weight: 600;">
+              Điển chế triều Nguyễn
+            </span>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="trang_phuc_chinh" class="form-label" style="margin-bottom: 0;">Trang Phục Chính <span style="color: #EF4444;">*</span></label>
+              <span id="costumeBadge" style="font-size: 12px; color: #D4AF37; font-family: monospace; font-weight: 700;">Quốc phục thế kỷ 19</span>
+            </div>
+            <select id="trang_phuc_chinh" class="input-box" onchange="onCostumeChange()">
+              <option value="ao_ngu_than_tay_chen" selected>Áo Ngũ Thân Tay Chẽn (5 thân vải, kín nách, cổ 3cm)</option>
+              <option value="ao_tac">Áo Tấc (Áo thụng - Tay rộng 30-50cm buông dài, đại lễ phục)</option>
+              <option value="ao_nhat_binh">Áo Nhật Bình (Lễ phục Cung đình Hậu Phi, cổ đối khâm)</option>
+            </select>
+            <div id="costumeSpecBox" style="background: rgba(15,23,42,0.7); border: 1px solid rgba(51,65,85,0.8); border-radius: 10px; padding: 12px; margin-top: 8px; font-size: 13px; color: #CBD5E1; line-height: 1.4;">
+              5 thân vải tượng trưng tứ thân phụ mẫu che chở thân con. Cổ lập lĩnh 3cm, 5 nút cài Ngũ thường, nách khâu liền 100%, tay chẽn gọn gàng.
+            </div>
+          </div>
+
+          <div>
+            <label for="do_doi_dau" class="form-label">Đồ Đội Đầu</label>
+            <select id="do_doi_dau" class="input-box">
+              <option value="khong_doi" selected>❌ Không chọn (Để tóc tự nhiên)</option>
+              <option value="khan_dong_co_truyen">Khăn Đóng Cổ Truyền (Xếp nếp chữ Nhân)</option>
+              <option value="non_quai_thao">Nón Quai Thao (Nón ba tầm Kinh Bắc)</option>
+              <option value="khan_vanh_day_cung_dinh">Khăn Vành Dây Cung Đình</option>
+              <option value="tram_cai_khong_doi">Cài trâm ngọc phỉ thúy thanh nhã</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="trang_suc" class="form-label">Phụ Kiện Đi Kèm</label>
+            <select id="trang_suc" class="input-box">
+              <option value="khong_phu_kien" selected>❌ Không chọn phụ kiện</option>
+              <option value="kieng_co_cham_khac">Kiềng Cổ Chạm Khắc (Hoa văn Thủy Ba)</option>
+              <option value="tram_cai_toc_go_ngoc">Trâm Cài Tóc Gỗ / Ngọc Phỉ Thúy</option>
+              <option value="quat_lua_ve_tay">Quạt Lụa Vẽ Tay Cố Đô</option>
+              <option value="chuoi_anh_lac_tu_nhien">Chuỗi Anh Lạc Ngọc Trai Tự Nhiên</option>
+            </select>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label for="dinh_hinh_vibe" class="form-label" style="margin-bottom: 0;">Phong Cách Vibe <span style="color: #EF4444;">*</span></label>
+              <span id="vibeBadge" style="font-size: 12px; color: #D4AF37; font-family: monospace; font-weight: 700;">Preppy Scholar</span>
+            </div>
+            <select id="dinh_hinh_vibe" class="input-box">
+              <option value="thu_sinh_preppy" selected>★ Thư sinh Preppy (Nho sinh kinh kỳ, phối âu phục & loafer)</option>
+              <option value="vintage_hoai_co">★ Vintage Hoài Cổ (Thập niên 1930s, đũi mộc mạc)</option>
+              <option value="cong_so_thanh_lich">★ Công sở Thanh lịch (Mực thước, cổ đứng 3cm)</option>
+              <option value="tra_banh_hoang_gia">★ Trà bánh Hoàng gia (Royal tea time, sa mỏng)</option>
+              <option value="ca_phe_cuoi_tuan">★ Cà phê Cuối tuần (Dạo phố đương đại, overshirt)</option>
+              <option value="du_le_hoi_truyen_thong">★ Dự lễ hội Truyền thống (Nghi lễ 100% nguyên bản)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 24px; border-color: rgba(212,175,55,0.45);">
+        <button id="btnInitStyling" class="btn-primary" onclick="initiateStyling()">
+          <span style="font-size: 22px;">🚀</span>
+          <span class="font-serif" style="letter-spacing: 0.5px; font-size: 18px;">Khởi tạo phối đồ (Tạo 2 Option A & B)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CHẶNG 2: CHỌN PHƯƠNG ÁN & TINH CHỈNH CHI TIẾT -->
+    <div id="viewStage2" style="display: none;">
+      <div style="margin-bottom: 20px;">
+        <span style="font-size: 12px; color: #D4AF37; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+          ❖ CHẶNG 2 / 3
+        </span>
+        <h2 class="font-serif" style="font-size: 26px; font-weight: 700; color: #F8FAFC; margin-top: 4px;">
+          🎨 Chặng 2: Chọn phương án & Tinh chỉnh chi tiết
+        </h2>
+      </div>
+
+      <div class="grid-2" style="margin-bottom: 24px;">
+        <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 800; background: rgba(153,27,27,0.45); border: 1px solid #991B1B; color: #FCA5A5; padding: 4px 10px; border-radius: 16px;">
+              OPTION A • BẢN SẮC CỔ ĐIỂN (100%)
+            </span>
+          </div>
+          <div style="aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 2px solid #D4AF37; background: #0F172A;">
+            <img id="imgOptionA" src="" alt="Option A Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <details class="expander">
+            <summary>🔍 Xem Prompt Option A</summary>
+            <div id="promptOptionAText" class="expander-content">Prompt Option A...</div>
+          </details>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; font-weight: 800; background: rgba(212,175,55,0.2); border: 1px solid #D4AF37; color: #FDE68A; padding: 4px 10px; border-radius: 16px;">
+              OPTION B • QUIET TRADITION (80/20)
+            </span>
+          </div>
+          <div style="aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; border: 2px solid #D4AF37; background: #0F172A;">
+            <img id="imgOptionB" src="" alt="Option B Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <details class="expander">
+            <summary>🔍 Xem Prompt Option B</summary>
+            <div id="promptOptionBText" class="expander-content">Prompt Option B...</div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div id="cardChoiceA" class="option-select-card" onclick="setChosenOption('A')">
+            <div style="font-size: 15px; font-weight: 800; color: #F8FAFC;">Option A (Cổ Điển 100%)</div>
+            <div id="radioIndicatorB" style="width: 20px; height: 20px; border-radius: 50%; background: #D4AF37; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✓</div>
+          </div>
+          <div id="cardChoiceB" class="option-select-card selected" onclick="setChosenOption('B')">
+            <div style="font-size: 15px; font-weight: 800; color: #F8FAFC;">Option B (Quiet Tradition 80/20)</div>
+            <div id="radioIndicatorB" style="width: 20px; height: 20px; border-radius: 50%; background: #D4AF37; color: #0F172A; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">✓</div>
+          </div>
+        </div>
+
+        <div>
+          <label for="feedback_text" class="form-label">Lời Nhắn Tinh Chỉnh Cá Nhân Gửi AI Stylist:</label>
+          <textarea id="feedback_text" class="input-box" rows="2" style="resize: none;"> </textarea>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; gap: 14px;">
+          <button type="button" class="btn-secondary" onclick="goToStage(1)">⬅️ Quay lại Chặng 1</button>
+          <button type="button" id="btnFinalize" class="btn-primary" style="width: auto; min-width: 280px;" onclick="finalizeAndGoToStage3()">
+            ✨ Chốt lựa chọn & Tạo ảnh cuối
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHẶNG 3: KẾT QUẢ PHỐI ĐỒ & DI SẢN VĂN HÓA -->
+    <div id="viewStage3" style="display: none;">
+      <div style="margin-bottom: 20px;">
+        <span style="font-size: 12px; color: #D4AF37; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;">
+          ❖ CHẶNG 3 / 3
+        </span>
+        <h2 class="font-serif" style="font-size: 26px; font-weight: 700; color: #F8FAFC; margin-top: 4px;">
+          🏆 Chặng 3: Kết quả phối đồ & Di sản Văn hóa
+        </h2>
+      </div>
+
+      <div class="grid-2" style="align-items: start;">
+        <div class="card" style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="aspect-ratio: 3/4; border-radius: 14px; overflow: hidden; border: 2px solid #D4AF37; position: relative; background: #0F172A;">
+            <img id="finalResultImg" src="" alt="Final Result" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <button type="button" class="btn-gold" onclick="downloadFinalImage()">
+            <span>📥 Tải ảnh về máy</span>
+          </button>
+        </div>
+
+        <div class="card" style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: rgba(20, 83, 45, 0.4); border: 1px solid rgba(34, 197, 94, 0.5); border-radius: 12px; padding: 14px;">
+            <div style="font-size: 13px; font-weight: 800; color: #86EFAC; text-transform: uppercase;">💡 LỜI KHUYÊN TỪ AI STYLIST:</div>
+            <p id="stylistAdviceText" style="font-size: 14px; color: #DCFCE7; margin-top: 6px;">Lời khuyên di sản...</p>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 12px; padding: 14px;">
+            <div style="font-size: 13px; font-weight: 800; color: #FDE68A; text-transform: uppercase; margin-bottom: 8px;">👔 CHI TIẾT PHỐI TRANG PHỤC:</div>
+            <div id="detailMainCostume" style="font-size: 14px; color: #F8FAFC;">-</div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 12px; padding: 14px;">
+            <div style="font-size: 13px; font-weight: 800; color: #FDE68A; text-transform: uppercase; margin-bottom: 8px;">📜 KIẾN THỨC LỊCH SỬ & ĐIỂN CHẾ:</div>
+            <h4 id="historyCostumeName" class="font-serif" style="font-size: 16px; font-weight: 800; color: #F8FAFC;">Tên trang phục</h4>
+            <p id="historyCostumeOrigin" style="font-size: 13px; color: #CBD5E1; margin-top: 4px;">Nguồn gốc lịch sử...</p>
+            <div id="historyDetailsList" style="margin-top: 10px; font-size: 13px; color: #E2E8F0; display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+
+          <button type="button" class="btn-secondary" style="border-color: #D4AF37; color: #FDE68A;" onclick="resetToStage1()">🔄 Tạo bộ phối mới từ đầu</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* ========================================================================
+     * KHAI BÁO GEMINI API KEY TẠI ĐÂY (KHÔNG HIỆN TRÊN GIAO DIỆN)
+     * ======================================================================== */
+    const GEMINI_API_KEY = "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY";
+
+    let currentStage = 1;
+    let chosenOption = 'B';
+    let uploadedImageBase64 = null;
+    let uploadedImageUrl = null;
+    let promptOptionA_Global = "";
+    let promptOptionB_Global = "";
+
+    const ERROR_TRANSLATIONS = {
+      ERR_MA_DIEN: {
+        title: "LỖI PHỐI QUỐC PHỤC NGOẠI QUỐC",
+        msg: "Cấm tuyệt đối phối cổ phục Việt Nam với quốc phục các nước khác (váy Mã Diện, Sườn Xám, Hanbok, Kimono)!",
+        advice: "Hãy phối cùng trang phục hiện đại tối giản (quần âu, jeans, chân váy trơn) để tôn vinh bản sắc Việt."
+      },
+      ERR_HO_NACH: {
+        title: "LỖI LỘ NÁCH / SAI CẤU TRÚC ÁO",
+        msg: "Áo ngũ thân/áo tấc cổ truyền bắt buộc phải khâu kín nách 100%, không được để hở nách!",
+        advice: "Điều chỉnh lại đường may nách kín đáo đúng quy chuẩn tiền nhân."
+      },
+      ERR_SO_LUONG_NUT: {
+        title: "LỖI SAI SỐ LƯỢNG KHUY CÀI",
+        msg: "Số lượng khuy/nút cài gài bên vạt phải bắt buộc phải đúng 5 nút (Đại diện cho Ngũ Thường)!",
+        advice: "Giữ đúng 5 khuy cài tượng trưng cho Nhân, Lễ, Nghĩa, Trí, Tín."
+      },
+      ERR_MAU_HOA_TIET_TIEM_QUYEN: {
+        title: "LỖI VI PHẠM HỌA TIẾT HOÀNG GIA",
+        msg: "Trang phục thường dân tuyệt đối không được dùng màu vàng hoàng bào hoặc thêu rồng 5 móng cai trị!",
+        advice: "Chọn tông màu nhã nhặn (chàm, be, xanh rêu) và hoa văn mây sóng/hoa lá tự nhiên."
+      },
+      ERR_NHAT_BINH_CASUAL: {
+        title: "LỖI HẠ CẤP LỄ PHỤC NHẬT BÌNH",
+        msg: "Áo Nhật Bình là lễ phục cung đình trang trọng bậc nhất, phải giữ nguyên bản 100%, không được phối streetwear dạo phố!",
+        advice: "Chuyển sang Vibe 'Trà bánh Hoàng gia' hoặc dùng Áo Ngũ Thân Tay Chẽn để phối đồ thường nhật."
+      },
+      ERR_ANH_LAC_NHUA: {
+        title: "LỖI PHỤ KIỆN NHỰA NHÂN TẠO",
+        msg: "Trang sức Anh Lạc đeo cổ/vai không được sử dụng chất liệu nhựa công nghiệp rẻ tiền!",
+        advice: "Ưu tiên chất liệu tự nhiên như ngọc trai, đá quý, kiềng bạc hoặc trầm hương."
+      }
+    };
+
+    const SYSTEM_INSTRUCTION_CULTURAL_RULE = `
+You are an expert AI Cultural Stylist for Vietnamese Traditional Costumes (Nguyen Dynasty).
+Analyze user information and image to output JSON.
+
+RULES RED_ALERT:
+1. ERR_MA_DIEN: Forbid mixing Vietnamese costumes with foreign national garments (Ma Dien skirt, Hanfu, Hanbok).
+2. ERR_HO_NACH: Underarm seams MUST be fully stitched closed.
+3. ERR_SO_LUONG_NUT: Buttons MUST strictly be 5 (Ngu Thuong).
+4. ERR_MAU_HOA_TIET_TIEM_QUYEN: Forbidden for commoners to wear imperial yellow or 5-clawed dragon patterns.
+5. ERR_NHAT_BINH_CASUAL: Ao Nhat Binh MUST remain 100% authentic, FORBIDDEN to pair with casual daily items.
+6. ERR_ANH_LAC_NHUA: Anh Lac MUST NOT be plastic.
+
+JSON RESPONSE SCHEMA REQUIRED:
+{
+  "status": "SUCCESS" | "GLITCH_DETECTED",
+  "error_code": "ERR_MA_DIEN" | "ERR_HO_NACH" | "ERR_SO_LUONG_NUT" | "ERR_MAU_HOA_TIET_TIEM_QUYEN" | "ERR_NHAT_BINH_CASUAL" | "ERR_ANH_LAC_NHUA" | null,
+  "canh_bao": string | null,
+  "loi_khuyen": string,
+  "prompt_image": string,
+  "chi_tiet_phoi": { "ao_chinh": string, "tone_mau": string, "item_hien_dai": string },
+  "kien_thuc_lich_su": {
+    "ten_trang_phuc": string,
+    "nguon_goc_lich_su": string,
+    "y_nghia_chi_tiet": {
+      "y_nghia_phom_dang_va_vat": string,
+      "y_nghia_5_nut_ngu_thuong": string,
+      "y_nghia_hoa_van_mau_sac": string,
+      "y_nghia_phu_kien": string
+    }
+  }
+}
+`;
+
+    const COSTUMES = {
+      ao_ngu_than_tay_chen: { name: "Áo Ngũ Thân Tay Chẽn", badge: "Quốc phục thế kỷ 19", spec: "5 thân vải tượng trưng tứ thân phụ mẫu che chở thân con. Cổ 3cm, 5 nút Ngũ Thường, kín nách.", history: "Định hình từ cuộc cải cách y phục năm 1744 của Chúa Nguyễn Phúc Khoát và Vua Minh Mạng ban hành toàn quốc." },
+      ao_tac: { name: "Áo Tấc", badge: "Đại lễ phục trang nghiêm", spec: "Tay thụng rộng 30-50cm, chắp tay tạo hình cánh cung trang nghiêm.", history: "Lễ phục phổ biến từ hoàng tộc đến thứ dân trong các dịp đại lễ, tế tự triều Nguyễn." },
+      ao_nhat_binh: { name: "Áo Nhật Bình", badge: "Cung đình Nghi lễ", spec: "Cổ đối khâm chữ Nhật trước ngực, nẹp thêu kim phụng, tay 5 màu ngũ hành. Giữ nguyên bản 100%.", history: "Định chế năm Gia Long thứ 6 (1807) dành cho Hậu Phi, Công chúa triều Nguyễn." }
+    };
+
+    const HEADWEARS = {
+      khong_doi: { name: "Không chọn (Để tóc tự nhiên)" },
+      khan_dong_co_truyen: { name: "Khăn Đóng Cổ Truyền" },
+      non_quai_thao: { name: "Nón Quai Thao" },
+      khan_vanh_day_cung_dinh: { name: "Khăn Vành Dây Cung Đình" },
+      tram_cai_khong_doi: { name: "Cài trâm ngọc phỉ thúy" }
+    };
+
+    const ACCESSORIES = {
+      khong_phu_kien: { name: "Không chọn phụ kiện" },
+      kieng_co_cham_khac: { name: "Kiềng Cổ Chạm Khắc" },
+      tram_cai_toc_go_ngoc: { name: "Trâm Cài Tóc Gỗ / Ngọc Phỉ Thúy" },
+      quat_lua_ve_tay: { name: "Quạt Lụa Vẽ Tay Cố Đô" },
+      chuoi_anh_lac_tu_nhien: { name: "Chuỗi Anh Lạc Ngọc Trai Tự Nhiên" }
+    };
+
+    const VIBES = {
+      thu_sinh_preppy: { name: "Thư sinh Preppy", palette: "Beige • Xanh lam chàm • Xám ghi", items: "Quần âu, Giày Loafer, Kính gọng tròn." },
+      vintage_hoai_co: { name: "Vintage Hoài Cổ", palette: "Nâu củ nâu • Mỡ gà • Xanh rêu", items: "Quần đũi linen, Giày Hạ da." },
+      cong_so_thanh_lich: { name: "Công sở Thanh lịch", palette: "Đen tuyền • Xanh navy", items: "Quần tây tailored, Giày Oxford." },
+      tra_banh_hoang_gia: { name: "Trà bánh Hoàng gia", palette: "Xanh thiên thanh • Vàng mơ", items: "Giày mules lụa, Khăn lụa tơ tằm." },
+      ca_phe_cuoi_tuan: { name: "Cà phê Cuối tuần", palette: "Chàm indigo • Trắng sữa", items: "Jeans ống suông, Sneaker canvas." },
+      du_le_hoi_truyen_thong: { name: "Dự lễ hội Truyền thống", palette: "Đỏ son điều • Xanh lục", items: "Hài thêu chim phụng, Khăn xếp." }
+    };
+
+    function getApiKey() {
+      return GEMINI_API_KEY ? GEMINI_API_KEY.trim() : "";
+    }
+
+    function calculateBMI() {
+      const h = parseFloat(document.getElementById('inputHeight').value) / 100;
+      const w = parseFloat(document.getElementById('inputWeight').value);
+      if (h > 0 && w > 0) {
+        return (w / (h * h)).toFixed(1);
+      }
+      return "21.6";
+    }
+
+    function triggerRedAlert(errorCode, rawMessage, rawAdvice) {
+      const errInfo = ERROR_TRANSLATIONS[errorCode] || {};
+      document.getElementById('modalErrorTitle').innerText = errInfo.title || "CẢNH BÁO VI PHẠM QUY CHUẨN VĂN HÓA!";
+      document.getElementById('modalErrorCode').innerText = errorCode || "ERR_VI_PHAM_VAN_HOA";
+      document.getElementById('modalErrorMessage').innerText = errInfo.msg || rawMessage || "Phát hiện chi tiết sai lệch với quy chuẩn cổ phục Việt Nam!";
+      document.getElementById('modalAdviceMessage').innerText = errInfo.advice || rawAdvice || "Vui lòng điều chỉnh lại lựa chọn.";
+      document.getElementById('redAlertModal').classList.add('show');
+    }
+
+    function closeRedAlertModal() { document.getElementById('redAlertModal').classList.remove('show'); }
+
+    function goToStage(stageNum) {
+      currentStage = stageNum;
+      document.getElementById('viewStage1').style.display = stageNum === 1 ? 'block' : 'none';
+      document.getElementById('viewStage2').style.display = stageNum === 2 ? 'block' : 'none';
+      document.getElementById('viewStage3').style.display = stageNum === 3 ? 'block' : 'none';
+
+      document.getElementById('progressFill').style.width = stageNum === 1 ? '33.33%' : (stageNum === 2 ? '66.66%' : '100%');
+      [1, 2, 3].forEach(i => {
+        const btn = document.getElementById(`btnStage${i}`);
+        if (i === stageNum) btn.classList.add('active'); else btn.classList.remove('active');
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target ? event.target.files[0] : null;
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedImageBase64 = e.target.result;
+        uploadedImageUrl = e.target.result;
+        document.getElementById('previewImg').src = uploadedImageUrl;
+        document.getElementById('previewFileName').innerText = file.name;
+        document.getElementById('uploadPlaceholder').style.display = 'none';
+        document.getElementById('uploadPreview').style.display = 'flex';
+        document.getElementById('removePhotoBtn').style.display = 'inline';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removePortrait() {
+      uploadedImageUrl = null;
+      uploadedImageBase64 = null;
+      document.getElementById('uploadPreview').style.display = 'none';
+      document.getElementById('uploadPlaceholder').style.display = 'block';
+      document.getElementById('removePhotoBtn').style.display = 'none';
+      document.getElementById('filePortrait').value = "";
+    }
+
+    function setPresetPortrait(type) {
+      const preview = document.getElementById('uploadPreview');
+      const placeholder = document.getElementById('uploadPlaceholder');
+      const img = document.getElementById('previewImg');
+      const fileName = document.getElementById('previewFileName');
+      const removeBtn = document.getElementById('removePhotoBtn');
+      const descInput = document.getElementById('inputDesc');
+
+      if (type === 'nam') {
+        uploadedImageUrl = "nam si tu.webp";
+        fileName.innerText = "nam_si_tu.webp";
+        descInput.value = "Nam giới, mặt góc cạnh nho nhã, ngũ quan hài hòa, vóc dáng cân đối";
+      } else if (type === 'nu') {
+        uploadedImageUrl = "nu thanh nha.jpg";
+        fileName.innerText = "nu_thanh_nha.jpg";
+        descInput.value = "Nữ giới, mặt trái xoan hơi thuôn, vóc dáng thanh thoát";
+      }
+
+      uploadedImageBase64 = null;
+      img.src = uploadedImageUrl;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+      removeBtn.style.display = 'inline';
+    }
+
+    async function callGeminiApi(userPromptText, base64Image) {
+      const apiKey = getApiKey();
+      if (!apiKey || apiKey === "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY") { 
+        alert("Vui lòng bổ sung Gemini API Key trong phần khai báo <script> ở đầu file HTML!"); 
+        throw new Error("Missing Key"); 
+      }
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+      
+      const contentsParts = [{ text: userPromptText }];
+      if (base64Image) {
+        const cleanBase64 = base64Image.replace(/^data:image\/\w+;base64,/, '');
+        contentsParts.push({
+          inline_data: {
+            mime_type: "image/jpeg",
+            data: cleanBase64
+          }
+        });
+      }
+
+      const payload = {
+        system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION_CULTURAL_RULE }] },
+        contents: [{ role: "user", parts: contentsParts }],
+        generationConfig: { temperature: 0.2, responseMimeType: "application/json" }
+      };
+
+      const resp = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!resp.ok) throw new Error(`Lỗi Gemini API: ${resp.status}`);
+      const resData = await resp.json();
+      return JSON.parse(resData?.candidates?.[0]?.content?.parts?.[0]?.text || "{}");
+    }
+
+    async function generateImageFromPrompt(promptText) {
+      return `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=768&height=1024&nologo=true`;
+    }
+
+    async function initiateStyling() {
+      const costumeId = document.getElementById('trang_phuc_chinh').value;
+      const vibeId = document.getElementById('dinh_hinh_vibe').value;
+      const headwearId = document.getElementById('do_doi_dau').value;
+      const accessoryId = document.getElementById('trang_suc').value;
+      const notes = document.getElementById('ghi_chu_them').value;
+      const userName = document.getElementById('nhap_ten').value || "Người mặc";
+      const bmiScore = calculateBMI();
+
+      if (costumeId === 'ao_nhat_binh' && (vibeId === 'ca_phe_cuoi_tuan' || vibeId === 'cong_so_thanh_lich' || vibeId === 'thu_sinh_preppy')) {
+        triggerRedAlert("ERR_NHAT_BINH_CASUAL"); return;
+      }
+      if (notes.toLowerCase().includes('mã diện') || notes.toLowerCase().includes('hanbok')) {
+        triggerRedAlert("ERR_MA_DIEN"); return;
+      }
+
+      const headwearText = HEADWEARS[headwearId] ? HEADWEARS[headwearId].name : "Không chọn";
+      const accessoryText = ACCESSORIES[accessoryId] ? ACCESSORIES[accessoryId].name : "Không chọn";
+
+      const btn = document.getElementById('btnInitStyling');
+      btn.innerHTML = `<span>⏳ Gemini AI đang phân tích dữ liệu & chân dung...</span>`;
+
+      try {
+        const apiKey = getApiKey();
+        let data;
+        const promptInput = `Phân tích phối đồ cho người mặc: ${userName}, BMI: ${bmiScore}, Phục trang: ${COSTUMES[costumeId].name}, Đội đầu: ${headwearText}, Phụ kiện: ${accessoryText}, Vibe: ${VIBES[vibeId].name}, Ghi chú: ${notes}`;
+
+        if (apiKey && apiKey !== "DÁN_API_KEY_CỦA_BẠN_VÀO_ĐÂY") {
+          data = await callGeminiApi(promptInput, uploadedImageBase64);
+        } else {
+          data = {
+            status: "SUCCESS",
+            prompt_image: `OPTION_A: Editorial portrait of ${userName} in ${COSTUMES[costumeId].name}, headwear: ${headwearText}, accessory: ${accessoryText} ||| OPTION_B: Lookbook portrait of ${userName} in 80/20 Quiet Tradition ${COSTUMES[costumeId].name}`,
+            loi_khuyen: "Bộ phục trang đáp ứng hoàn hảo tiêu chuẩn Quiet Tradition.",
+            chi_tiet_phoi: { ao_chinh: COSTUMES[costumeId].name, tone_mau: VIBES[vibeId].palette, item_hien_dai: VIBES[vibeId].items },
+            kien_thuc_lich_su: { ten_trang_phuc: COSTUMES[costumeId].name, nguon_goc_lich_su: COSTUMES[costumeId].history, y_nghia_chi_tiet: { y_nghia_phom_dang_va_vat: COSTUMES[costumeId].spec, y_nghia_5_nut_ngu_thuong: "5 khuy cài Ngũ Thường", y_nghia_hoa_van_mau_sac: "Tông màu tự nhiên", y_nghia_phu_kien: accessoryText } }
+          };
+        }
+
+        if (data.status === "GLITCH_DETECTED") {
+          triggerRedAlert(data.error_code, data.canh_bao, data.loi_khuyen);
+          btn.innerHTML = `🚀 Khởi tạo phối đồ (Tạo 2 Option A & B)`; return;
+        }
+
+        const rawPrompts = data.prompt_image || "";
+        const parts = rawPrompts.split("|||");
+        promptOptionA_Global = parts[0] ? parts[0].replace(/OPTION_A:/i, '').trim() : rawPrompts;
+        promptOptionB_Global = parts[1] ? parts[1].replace(/OPTION_B:/i, '').trim() : rawPrompts;
+
+        document.getElementById('promptOptionAText').innerText = promptOptionA_Global;
+        document.getElementById('promptOptionBText').innerText = promptOptionB_Global;
+        document.getElementById('imgOptionA').src = await generateImageFromPrompt(promptOptionA_Global);
+        document.getElementById('imgOptionB').src = await generateImageFromPrompt(promptOptionB_Global);
+
+        btn.innerHTML = `🚀 Khởi tạo phối đồ (Tạo 2 Option A & B)`;
+        goToStage(2);
+      } catch (err) {
+        alert("Lỗi: " + err.message);
+        btn.innerHTML = `🚀 Khởi tạo phối đồ (Tạo 2 Option A & B)`;
+      }
+    }
+
+    function setChosenOption(opt) {
+      chosenOption = opt;
+      document.getElementById('cardChoiceA').classList.toggle('selected', opt === 'A');
+      document.getElementById('cardChoiceB').classList.toggle('selected', opt === 'B');
+      document.getElementById('radioIndicatorA').innerText = opt === 'A' ? '✓' : '';
+      document.getElementById('radioIndicatorB').innerText = opt === 'B' ? '✓' : '';
+    }
+
+    async function finalizeAndGoToStage3() {
+      const userName = document.getElementById('nhap_ten').value || "Người mặc";
+      const costumeId = document.getElementById('trang_phuc_chinh').value;
+      const feedback = document.getElementById('feedback_text').value;
+      const c = COSTUMES[costumeId];
+
+      const btn = document.getElementById('btnFinalize');
+      btn.innerHTML = `<span>⏳ AI đang hoàn thiện...</span>`;
+
+      const finalPrompt = `Editorial masterpiece photograph of ${userName} in ${c.name}, ${feedback}`;
+      document.getElementById('finalResultImg').src = await generateImageFromPrompt(finalPrompt);
+
+      document.getElementById('stylistAdviceText').innerText = "Bộ phục trang tôn vinh nét đẹp di sản triều Nguyễn.";
+      document.getElementById('detailMainCostume').innerText = `${c.name} (${c.spec})`;
+      document.getElementById('historyCostumeName').innerText = `${c.name} — Triều Nguyễn`;
+      document.getElementById('historyCostumeOrigin').innerText = c.history;
+
+      document.getElementById('historyDetailsList').innerHTML = `
+        <div><strong style="color: #FDE68A;">✦ Phom dáng 5 thân vải:</strong> Bốn thân ngoài tượng trưng Tứ thân phụ mẫu che chở thân con.</div>
+        <div><strong style="color: #FDE68A;">✦ 5 nút Ngũ Thường:</strong> Tượng trưng Nhân, Lễ, Nghĩa, Trí, Tín.</div>
+      `;
+
+      btn.innerHTML = `✨ Chốt lựa chọn & Tạo ảnh cuối`;
+      goToStage(3);
+    }
+
+    function downloadFinalImage() {
+      const link = document.createElement('a'); 
+      link.href = document.getElementById('finalResultImg').src; 
+      link.download = 'co_phuc_viet_nam_ai.jpg'; 
+      link.click();
+    }
+
+    function resetToStage1() { goToStage(1); }
+
+    function onCostumeChange() {
+      const c = COSTUMES[document.getElementById('trang_phuc_chinh').value];
+      document.getElementById('costumeBadge').innerText = c.badge;
+      document.getElementById('costumeSpecBox').innerText = c.spec;
+    }
+
+    function addDescTag(tag) {
+      const el = document.getElementById('inputDesc'); if (!el.value.includes(tag)) el.value += `, ${tag}`;
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = '#D4AF37'; });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(212,175,55,0.32)'; });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = 'rgba(212,175,55,0.32)';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFileSelect({ target: { files: e.dataTransfer.files } });
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setPresetPortrait('nam');
+    });
+  </script>
+</body>
+</html>
